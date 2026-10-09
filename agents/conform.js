@@ -17,9 +17,11 @@ Procedure:
 2. add_clip once per EDL row, in EDL order, with clip_path, in_s = source_start_sec,
    out_s = source_end_sec. Keep the producer_id each call returns.
 3. If the EDL notes ask for a title card, add it with append_text_overlay.
-4. Call get_timeline and compare it to the EDL: same number of clips, same order,
-   same in/out points. Fix any mismatch with trim_clip, move_clip or remove_clip.
-5. When the timeline matches, reply with one short line saying it is conformed.
+4. Call get_timeline. Its result includes edl_check, computed by the cutting room:
+   if edl_check.matches is true, STOP and reply with one short line. If it lists
+   problems, fix exactly those with trim_clip, move_clip or remove_clip, then call
+   get_timeline again.
+5. Never remove a clip that edl_check does not name as a problem.
 
 Never invent clips or change the Editor's choices. Do not render; the cutting room
 renders after you finish.`;
@@ -63,9 +65,10 @@ const REVISE_SYSTEM = `You are the ASSISTANT EDITOR. The Reviewer watched the cu
 issued orders; the Editor's revised EDL is the target. The project already exists.
 Change the EXISTING timeline into the target using trim_clip, move_clip, remove_clip
 and add_clip (add_clip appends at the end; follow it with move_clip to place it).
-Call get_timeline first to see producer_ids, and again at the end to verify the
-timeline matches the target: same clips, same order, same in/out points. Then reply
-with one short line. Do not create a new project. Do not render.`;
+Call get_timeline first to see producer_ids. Its result includes edl_check, computed
+by the cutting room against the target: work only on the problems it lists, call
+get_timeline again after your changes, and when edl_check.matches is true reply with
+one short line. Do not create a new project. Do not render.`;
 
 export async function runConform({
   timeline,
@@ -134,6 +137,14 @@ export async function runConform({
           args = {};
         }
         const result = await timeline.call(callReq.function.name, args);
+        // Ground truth for the agent: code checks the timeline against the EDL so the
+        // agent never has to judge its own work by eye.
+        if (callReq.function.name === "get_timeline" && !result.error) {
+          const issues = verifyTimeline(result, edl, clipPaths, fps);
+          result.edl_check = issues.length
+            ? { matches: false, problems: issues }
+            : { matches: true, message: "The timeline MATCHES the EDL exactly. Do not change anything. Reply done." };
+        }
         toolLog.push({ tool: callReq.function.name, args, result });
         onLog(`assistant editor -> ${callReq.function.name}${result.error ? ` (error: ${result.error})` : ""}`);
         messages.push({ role: "tool", tool_call_id: callReq.id, content: JSON.stringify(result) });

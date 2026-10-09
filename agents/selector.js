@@ -61,6 +61,11 @@ const HOW_TO_READ = [
   "The loudness profile is sound level in dBFS per half second (about -60 is near silence,",
   "-20 is loud). Use it for audio_event: a jump of 10dB or more is an audio event.",
   "A span with motion near 0 and no audio event is a DEAD SHOT.",
+  "Log each moment for as long as its action really lasts. The Editor can trim a moment",
+  "but can never extend one, so a 7 second continuous move is one 7 second moment, not",
+  "three short ones. Split only where shot size or subject actually changes.",
+  "Work quickly: one pass through the sheets, then write the JSON. Do not deliberate",
+  "over boundaries finer than half a second.",
 ].join("\n");
 
 function stringArray(value) {
