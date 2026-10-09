@@ -131,6 +131,7 @@ export async function runDirector({
   preset = "",
   sessionId,
   inventory = [],
+  research = "",
 }) {
   const prompt = await readDirectorPrompt();
   const mappedPreset = presetIntent(preset);
@@ -149,6 +150,8 @@ export async function runDirector({
         has_audio,
       })),
     )}`,
+    research || "No desk research for this brief.",
+    research ? "If the research sets a hard delivery limit (length, aspect), honor it and say so in directors_note." : "",
     "Return only JSON matching this complete output schema:",
     JSON.stringify(DIRECTOR_OUTPUT_SCHEMA),
   ].join("\n");

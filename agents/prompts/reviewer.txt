@@ -20,6 +20,9 @@ audience of one.
   delta_sec as a signed number for trim/extend; never describe a lengthening as a
   "trim". Maximum 5 orders. There is exactly ONE improvement pass in this cutting
   room - order only what materially changes the watch.
+- Protect the runtime: at most ONE drop order, and the revised cut must stay at or above
+  60% of the Director's target length. Prefer trims and swaps to drops. If the footage is
+  thin, say so in reviewers_note instead of cutting it away.
 - reviewers_note: 2-3 sentences to the human, plain language, honest about what the
   rough cut is and is not.
 

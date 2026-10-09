@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CUTROOM</title>
+  <meta name="description" content="A virtual cutting room: NVIDIA Nemotron agents turn raw footage and one line of intent into a rough cut and a real Shotcut timeline.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main>
+  <!-- LANDING -->
+  <section id="s-landing" class="screen active">
+    <div class="wrap narrow">
+      <h1 class="brand">CUTROOM</h1>
+      <p class="tagline">Your first cut, tonight.</p>
+      <p class="lede">A virtual cutting room. Hand it raw footage and one line of intent. A crew of AI agents watches every clip, commits to a cut, builds a real Shotcut timeline through MCP tools, screens it, fixes it once, and tells you what to shoot tomorrow.</p>
+      <div class="actions">
+        <button id="btn-sample" class="btn primary">Run the sample footage</button>
+        <label id="dropzone" class="dropzone" tabindex="0">
+          <input id="file-input" type="file" multiple accept=".mp4,.mov,.m4v">
+          <span class="drop-title">Drop your footage</span>
+          <span class="drop-sub">.mp4 / .mov, up to 6 clips, 200MB, 5 minutes total</span>
+        </label>
+      </div>
+      <p id="landing-error" class="error" aria-live="polite"></p>
+      <footer class="credits">
+        <span>Decisions: <b id="m-reason">NVIDIA Nemotron 3 Super</b></span>
+        <span>Tool use: <b id="m-fast">NVIDIA Nemotron 3 Nano</b></span>
+        <span>Eyes: <b id="m-vision">GLM-5.3-Flash</b></span>
+        <span>Served by Nebius Token Factory</span>
+      </footer>
+    </div>
+  </section>
+
+  <!-- BRIEF -->
+  <section id="s-brief" class="screen">
+    <div class="wrap narrow">
+      <h1 class="brand small">CUTROOM</h1>
+      <div id="inventory" class="inventory"></div>
+      <label for="brief" class="label">Tell the crew what you want</label>
+      <textarea id="brief" rows="4" placeholder="e.g. A 30 second teaser for the print. Quiet, patient, end on the astronaut."></textarea>
+      <div class="chips" role="group" aria-label="Presets">
+        <button class="chip" data-preset="Energetic promo">Energetic promo</button>
+        <button class="chip" data-preset="Quiet documentary">Quiet documentary</button>
+        <button class="chip" data-preset="Social short 60s">Social short 60s</button>
+      </div>
+      <button id="btn-run" class="btn primary">Send to the cutting room</button>
+      <p id="brief-error" class="error" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- CUTTING ROOM -->
+  <section id="s-room" class="screen">
+    <div class="wrap wide">
+      <header class="room-head">
+        <h1 class="brand small">CUTROOM</h1>
+        <div class="meter"><span>This cut so far</span><b id="cost">$0.0000</b></div>
+      </header>
+      <p id="room-brief" class="room-brief"></p>
+      <ol id="crew" class="crew"></ol>
+      <div id="director-note" class="note hidden"></div>
+      <div class="log-wrap">
+        <div class="log-title">Cutting room log</div>
+        <ol id="log" class="log" aria-live="polite"></ol>
+      </div>
+      <p id="room-error" class="error" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="s-result" class="screen">
+    <div class="wrap wide">
+      <header class="room-head">
+        <h1 class="brand small">CUTROOM</h1>
+        <div class="meter"><span>Model cost of this cut</span><b id="cost-final">$0.00</b></div>
+      </header>
+      <div class="result-grid">
+        <div class="player-col">
+          <video id="player" controls playsinline preload="metadata"></video>
+          <div class="toggle" role="group" aria-label="Cut version">
+            <button id="v-final" class="chip on">Final cut</button>
+            <button id="v-first" class="chip">First cut</button>
+          </div>
+          <div id="downloads" class="downloads"></div>
+        </div>
+        <div class="info-col">
+          <div class="card"><div class="card-title">Director</div><p id="r-director"></p><p id="r-intent" class="muted small"></p></div>
+          <div class="card"><div class="card-title">Reviewer</div><p id="r-review"></p><ul id="r-orders" class="orders"></ul></div>
+          <div class="card"><div class="card-title">Assistant editor, over MCP</div><p id="r-conform"></p><ol id="r-tools" class="tools"></ol></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">Edit decision list</div><table id="edl" class="edl"></table></div>
+      <div class="card"><div class="card-title">Coverage: shoot this tomorrow</div><p id="r-coverage"></p><ol id="r-pickups" class="pickups"></ol></div>
+      <button id="btn-again" class="btn ghost">Cut something else</button>
+    </div>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
