@@ -79,3 +79,30 @@ test("parseJSONReply handles fences and prose", () => {
   assert.deepEqual(parseJSONReply('Sure! {"a":2} hope that helps'), { a: 2 });
   assert.deepEqual(parseJSONReply('<think>hmm</think>{"a":3}'), { a: 3 });
 });
+
+test("readReply assembles a streamed reply, tool calls and usage", async () => {
+  const { readReply } = await import("../lib/llm.js");
+  const lines = [
+    'data: {"choices":[{"delta":{"reasoning_content":"thinking..."}}]}',
+    'data: {"choices":[{"delta":{"content":"{\\"a\\":"}}]}',
+    'data: {"choices":[{"delta":{"content":"1}"}}]}',
+    'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"t1","function":{"name":"add_clip","arguments":"{\\"in_s\\":"}}]}}]}',
+    'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"1}"}}]},"finish_reason":"tool_calls"}]}',
+    'data: {"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":5}}',
+    "data: [DONE]",
+  ];
+  const text = lines.join("\n") + "\n";
+  // split mid-line to prove buffering works
+  const parts = [text.slice(0, 37), text.slice(37, 150), text.slice(150)];
+  const res = {
+    headers: { get: () => "text/event-stream" },
+    body: (async function* () { for (const p of parts) yield new TextEncoder().encode(p); })(),
+  };
+  const r = await readReply(res);
+  assert.equal(r.message.content, '{"a":1}');
+  assert.equal(r.message.reasoning_content, "thinking...");
+  assert.equal(r.message.tool_calls[0].function.name, "add_clip");
+  assert.equal(r.message.tool_calls[0].function.arguments, '{"in_s":1}');
+  assert.equal(r.finishReason, "tool_calls");
+  assert.deepEqual(r.usage, { prompt_tokens: 10, completion_tokens: 5 });
+});

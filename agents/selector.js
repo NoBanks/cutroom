@@ -107,11 +107,36 @@ export function normaliseMoment(moment, duration) {
   };
 }
 
+// Back-to-back moments at the same shot size with no real gap are one continuous
+// take that the eyes logged in pieces. Join them so the Editor gets the full span
+// (it can always trim; it can never extend past a moment).
+const JOIN_GAP_SECONDS = 0.6;
+export function joinContinuousMoments(moments) {
+  const sorted = [...moments].sort((a, b) => a.start_sec - b.start_sec);
+  const out = [];
+  for (const m of sorted) {
+    const prev = out.at(-1);
+    if (prev && prev.shot_size === m.shot_size && m.start_sec - prev.end_sec <= JOIN_GAP_SECONDS && m.start_sec >= prev.start_sec) {
+      prev.end_sec = Math.max(prev.end_sec, m.end_sec);
+      if (m.action && !prev.action.includes(m.action)) prev.action = `${prev.action}; then ${m.action}`;
+      prev.intent_score = Math.max(prev.intent_score, m.intent_score);
+      prev.look_for_hits = [...new Set([...prev.look_for_hits, ...m.look_for_hits])];
+      if (m.audio_event && m.audio_event !== "none" && !prev.audio_event.includes(m.audio_event)) {
+        prev.audio_event = prev.audio_event && prev.audio_event !== "none" ? `${prev.audio_event}; ${m.audio_event}` : m.audio_event;
+      }
+      prev.joined = (prev.joined || 1) + 1;
+    } else {
+      out.push({ ...m });
+    }
+  }
+  return out;
+}
+
 export function normaliseResult(result, duration) {
   const moments = Array.isArray(result?.moments)
     ? result.moments.map((m) => normaliseMoment(m, duration)).filter(Boolean)
     : [];
-  return { moments, quality_flags: stringArray(result?.quality_flags) };
+  return { moments: joinContinuousMoments(moments), quality_flags: stringArray(result?.quality_flags) };
 }
 
 async function analyseClip({ clipPath, inventory, sessionDir, intent, onProgress }) {
