@@ -15,10 +15,12 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY . .
 
+# Writable by any user (Hugging Face Spaces run the container as uid 1000).
+# On hosts that wipe the disk, set CUTROOM_LEDGER_REPO + HF_TOKEN for a durable ledger.
 ENV SHOTCUT_MCP_CMD=/opt/shotcut-venv/bin/shotcut-mcp \
-    CUTROOM_DATA=/data/sessions \
-    CUTROOM_LEDGER=/data/spend-ledger.json \
+    CUTROOM_DATA=/tmp/cutroom/sessions \
+    CUTROOM_LEDGER=/tmp/cutroom/spend-ledger.json \
     PORT=8080
-VOLUME /data
+RUN mkdir -p /tmp/cutroom && chmod 777 /tmp/cutroom
 EXPOSE 8080
 CMD ["node", "server.js"]

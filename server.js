@@ -15,6 +15,8 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { runCuttingRoom, buildInventory } from "./lib/pipeline.js";
 import { spendGuard, modelFor } from "./lib/llm.js";
+import os from "node:os";
+import { remoteLedgerConfigured, pullRemoteLedger, pushRemoteLedger, mergeIntoLocal } from "./lib/ledger-remote.js";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DATA = process.env.CUTROOM_DATA || path.join(ROOT, "sessions");
@@ -30,6 +32,40 @@ const DOWNLOADS = new Set([
 ]);
 
 fs.mkdirSync(DATA, { recursive: true });
+
+// ---- durable ledger (hosts with wiped disks) -------------------------------
+const LEDGER_PATH = process.env.CUTROOM_LEDGER || path.join(os.homedir(), ".cutroom", "spend-ledger.json");
+let ledgerReady = !remoteLedgerConfigured();
+let lastPushed = null;
+async function syncLedgerFromRemote() {
+  try {
+    const remote = await pullRemoteLedger();
+    const merged = mergeIntoLocal(LEDGER_PATH, remote);
+    spendGuard().reload();
+    lastPushed = merged.spent_usd;
+    ledgerReady = true;
+    console.log(`remote ledger loaded: $${merged.spent_usd.toFixed(4)} spent`);
+  } catch (err) {
+    ledgerReady = false;
+    console.error(`remote ledger unavailable, cuts are paused: ${err.message}`);
+    setTimeout(syncLedgerFromRemote, 60_000);
+  }
+}
+async function pushLedger() {
+  if (!remoteLedgerConfigured() || !ledgerReady) return;
+  const g = spendGuard();
+  if (g.spentUsd === lastPushed) return;
+  try {
+    await pushRemoteLedger(g.ledger);
+    lastPushed = g.spentUsd;
+  } catch (err) {
+    console.error(`remote ledger push failed: ${err.message}`);
+  }
+}
+if (remoteLedgerConfigured()) {
+  await syncLedgerFromRemote();
+  setInterval(pushLedger, 30_000);
+}
 const sessions = new Map();
 const queue = [];
 let running = null;
@@ -137,6 +173,7 @@ async function runNext() {
   } finally {
     s.costUsd = spendGuard().spentUsd - before;
     running = null;
+    await pushLedger();
     runNext();
   }
 }
@@ -166,6 +203,7 @@ app.get("/api/health", (_req, res) => {
     budget: { spent_today_usd: Number(spentToday().toFixed(4)), daily_limit_usd: DAILY_USD, total_spent_usd: g.spent_usd, stop_usd: g.soft_stop_usd },
     running: Boolean(running),
     queued: queue.length,
+    ledger: remoteLedgerConfigured() ? (ledgerReady ? "durable" : "unavailable") : "local",
   });
 });
 
@@ -205,6 +243,9 @@ app.post("/api/sessions/:id/run", (req, res) => {
   if (!s) return res.status(404).json({ error: "Session not found." });
   if (s.status === "running" || s.status === "queued") return res.json(view(s));
   if (!s.clips.length) return res.status(400).json({ error: "No footage in this session." });
+  if (!ledgerReady) {
+    return res.status(503).json({ error: "The budget ledger is unreachable right now, so cuts are paused to keep spending safe. Try again in a minute." });
+  }
   if (spentToday() >= DAILY_USD) {
     return res.status(429).json({ error: "Today's demo budget is used up. Please try again tomorrow, or watch the recorded run." });
   }
