@@ -230,7 +230,7 @@ export async function runEditor({
       "Return only JSON matching this complete output schema:",
       JSON.stringify(EDITOR_OUTPUT_SCHEMA),
     ].join("\n");
-    const result = await generateJSON(prompt, userPayload, EDITOR_OUTPUT_SCHEMA, { tier: "reason", thinking: true, maxTokens: 8000 });
+    const result = await generateJSON(prompt, userPayload, EDITOR_OUTPUT_SCHEMA, { tier: "reason", thinking: true, maxTokens: 16000 });
     const validated = validateEditorResult(result, moments, inventory);
     if (validated.ok) return validated.value;
     validationErrors = validated.errors;

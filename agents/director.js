@@ -155,7 +155,7 @@ export async function runDirector({
     "Return only JSON matching this complete output schema:",
     JSON.stringify(DIRECTOR_OUTPUT_SCHEMA),
   ].join("\n");
-  const result = await generateJSON(prompt, userPayload, DIRECTOR_OUTPUT_SCHEMA, { tier: "reason", thinking: true, maxTokens: 4000 });
+  const result = await generateJSON(prompt, userPayload, DIRECTOR_OUTPUT_SCHEMA, { tier: "reason", thinking: true, maxTokens: 8000 });
   const intent = normalizeDirectorResult(result, preset);
   return { intent };
 }

@@ -454,7 +454,7 @@ export async function runReviewer({
       "Base every finding on the notes and the EDL. watched_runtime_sec is the cut's duration.",
     ].join("\n"),
     REVIEWER_OUTPUT_SCHEMA,
-    { tier: "reason", thinking: true, maxTokens: 6000 },
+    { tier: "reason", thinking: true, maxTokens: 12000 },
   );
   log(`the reviewer answered after ${elapsed()}`);
   return normalizeReviewerResult(result);
