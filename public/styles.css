@@ -54,7 +54,7 @@ textarea:focus { outline: none; border-color: var(--amber); }
 .meter { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); text-align: right; }
 .meter b { display: block; color: var(--green); font-size: 1.1rem; font-weight: 400; }
 .room-brief { color: var(--muted); font-style: italic; margin-bottom: 1.5rem; }
-.crew { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; margin-bottom: 1.5rem; }
+.crew { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 0.45rem; margin-bottom: 1.2rem; }
 .chair { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.8rem; font-family: var(--mono); font-size: 0.75rem; }
 .chair .who { color: var(--text); letter-spacing: 0.08em; }
 .chair .model { color: var(--muted); font-size: 0.68rem; margin-top: 0.3rem; min-height: 1.6em; }
@@ -69,7 +69,7 @@ textarea:focus { outline: none; border-color: var(--amber); }
 .hidden { display: none; }
 .log-wrap { background: #0a0a0a; border: 1px solid var(--line); border-radius: 6px; }
 .log-title { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--line); }
-.log { list-style: none; max-height: 52vh; overflow-y: auto; padding: 0.6rem 0.9rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.55; }
+.log { list-style: none; max-height: 30vh; overflow-y: auto; padding: 0.6rem 0.9rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.55; }
 .log li { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.6rem; padding: 0.15rem 0; }
 .log .tag { color: var(--muted); text-transform: uppercase; }
 .log li.mcp .msg { color: var(--cyan); }

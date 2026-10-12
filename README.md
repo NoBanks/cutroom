@@ -93,7 +93,7 @@ Requirements: Linux (or WSL), Node 22, `melt`, `ffmpeg`, Python 3.10+.
 ```bash
 # 1. the MCP server the Assistant Editor drives
 python3 -m venv /opt/shotcut-venv
-/opt/shotcut-venv/bin/pip install "git+https://github.com/NoBanks/shotcut-mcp.git@fix/stateful-timeline"
+/opt/shotcut-venv/bin/pip install "git+https://github.com/NoBanks/shotcut-mcp.git@main"
 
 # 2. CUTROOM
 npm ci

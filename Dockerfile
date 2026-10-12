@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # shotcut-mcp: the MCP server the Assistant Editor drives.
-ARG SHOTCUT_MCP_REF=fix/stateful-timeline
+ARG SHOTCUT_MCP_REF=main
 RUN python3 -m venv /opt/shotcut-venv \
     && /opt/shotcut-venv/bin/pip install --no-cache-dir "git+https://github.com/NoBanks/shotcut-mcp.git@${SHOTCUT_MCP_REF}"
 
