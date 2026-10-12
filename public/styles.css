@@ -98,3 +98,16 @@ video { width: 100%; max-height: 72vh; object-fit: contain; background: #000; bo
 .pickups .size { font-family: var(--mono); color: var(--amber); margin-right: 0.4rem; }
 .card a { color: var(--cyan); }
 .log li.research .msg { color: var(--magenta); }
+.replay-only { display: none; }
+body.replay .replay-only { display: block; }
+body.replay .actions { display: none; }
+.replay-banner { color: var(--muted); line-height: 1.6; margin-bottom: 1.2rem; font-size: 0.95rem; }
+.replay-banner a { color: var(--cyan); }
+.gallery { display: grid; gap: 0.7rem; }
+.run-card { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1rem 1.1rem; cursor: pointer; color: var(--text); display: grid; gap: 0.35rem; font: inherit; transition: border-color 0.2s; }
+.run-card:hover { border-color: var(--amber); }
+.run-title { font-family: var(--mono); color: var(--amber); letter-spacing: 0.06em; }
+.run-brief { font-style: italic; color: var(--text); }
+.run-meta { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+body.replay .replay-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin: -0.5rem 0 1.2rem; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+.replay-bar .chip { margin: 0; }

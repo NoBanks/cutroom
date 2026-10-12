@@ -27,6 +27,10 @@
           <span class="drop-sub">.mp4 / .mov, up to 6 clips, 200MB, 5 minutes total</span>
         </label>
       </div>
+      <div class="replay-only">
+        <p class="replay-banner">This public demo replays <b>real recorded runs</b> of the crew, step by step, with the actual cuts and files they produced. To cut your own footage, run CUTROOM yourself in one command: <a href="https://github.com/NoBanks/cutroom" target="_blank" rel="noopener">github.com/NoBanks/cutroom</a>.</p>
+        <div id="gallery" class="gallery"></div>
+      </div>
       <p id="landing-error" class="error" aria-live="polite"></p>
       <footer class="credits">
         <span>Decisions: <b id="m-reason">NVIDIA Nemotron 3 Super</b></span>
@@ -62,6 +66,7 @@
         <div class="meter"><span>This cut so far</span><b id="cost">$0.0000</b></div>
       </header>
       <p id="room-brief" class="room-brief"></p>
+      <div class="replay-only replay-bar"><span id="replay-note"></span><button id="btn-skip" class="chip">Skip to the result</button></div>
       <ol id="crew" class="crew"></ol>
       <div id="director-note" class="note hidden"></div>
       <div class="log-wrap">

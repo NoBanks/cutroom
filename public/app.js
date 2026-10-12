@@ -35,14 +35,77 @@ function shortModel(m) {
   return (m || "").replace(/^nvidia\//, "").replace(/^zai-org\//, "");
 }
 
+const DEFAULT_MODELS = {
+  reason: "nvidia/nemotron-3-super-120b-a12b",
+  fast: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  vision: "zai-org/GLM-5.3-Flash",
+};
+let REPLAY = false;
+
 async function loadHealth() {
   try {
     const h = await api("/api/health");
     models = h.models;
-    $("m-reason").textContent = shortModel(models.reason);
-    $("m-fast").textContent = shortModel(models.fast);
-    $("m-vision").textContent = shortModel(models.vision);
+  } catch {
+    // No live server: this is the static public demo. Show recorded runs.
+    REPLAY = true;
+    models = DEFAULT_MODELS;
+    await loadGallery();
+  }
+  $("m-reason").textContent = shortModel(models.reason);
+  $("m-fast").textContent = shortModel(models.fast);
+  $("m-vision").textContent = shortModel(models.vision);
+}
+
+// ---- replay mode (static demo) ------------------------------------------
+async function loadGallery() {
+  document.body.classList.add("replay");
+  let runs = [];
+  try {
+    runs = await (await fetch("replays/index.json")).json();
   } catch {}
+  $("gallery").innerHTML = runs.map((r) => `
+    <button class="run-card" data-id="${esc(r.id)}">
+      <span class="run-title">${esc(r.title)}</span>
+      <span class="run-brief">"${esc(r.brief)}"</span>
+      <span class="run-meta">${r.shots} shots · ${Number(r.runtime_sec).toFixed(1)}s cut · cut in ${Math.round(r.elapsed_sec / 60)} min · $${Number(r.cost).toFixed(3)} in model calls</span>
+    </button>`).join("");
+  document.querySelectorAll(".run-card").forEach((b) => b.addEventListener("click", () => playReplay(b.dataset.id)));
+}
+
+let replayTimer = null;
+async function playReplay(id) {
+  const full = await (await fetch(`replays/${id}/session.json`)).json();
+  const events = full.log;
+  const total = events.length ? events.at(-1).t : 0;
+  const speed = Math.max(1, total / 45); // the whole run plays in about 45 seconds
+  session = { ...full, status: "running", stage: null, log: [], costUsd: 0, intent: null };
+  $("room-brief").textContent = `"${full.brief}"`;
+  $("replay-note").textContent = `Replay of a real run recorded ${full.recordedAt ? new Date(full.recordedAt).toLocaleDateString() : ""}, ${Math.round(total)}s of real time played at ${speed.toFixed(0)}x.`;
+  renderRoom();
+  show("s-room");
+  const started = performance.now();
+  let i = 0;
+  clearInterval(replayTimer);
+  const finish = () => {
+    clearInterval(replayTimer);
+    session = { ...full };
+    renderRoom();
+    setTimeout(renderResult, 600);
+  };
+  $("btn-skip").onclick = finish;
+  replayTimer = setInterval(() => {
+    const now = ((performance.now() - started) / 1000) * speed;
+    while (i < events.length && events[i].t <= now) {
+      const e = events[i++];
+      session.log.push(e);
+      session.stage = e.stage;
+      session.costUsd = e.cost;
+      if (e.stage === "selector" && !session.intent) session.intent = full.intent;
+    }
+    renderRoom();
+    if (i >= events.length) finish();
+  }, 200);
 }
 
 // ---- intake -------------------------------------------------------------
@@ -177,6 +240,12 @@ function fmt(n) {
   return Number(n).toFixed(2);
 }
 
+// Joined takes carry every sub-description ("...; then ..."); show the opening one.
+function shortAction(a) {
+  const first = String(a || "").split("; then ")[0];
+  return first.length > 160 ? first.slice(0, 157) + "..." : first;
+}
+
 function renderResult() {
   const s = session;
   const f = s.files;
@@ -229,7 +298,7 @@ function renderResult() {
 
   const edl = s.edl?.edl || [];
   $("edl").innerHTML = `<tr><th>#</th><th>Clip</th><th>In-out</th><th>Len</th><th>Role</th><th>On screen</th></tr>` +
-    edl.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="num">${esc(r.filename)}</td><td class="num">${fmt(r.source_start_sec)}-${fmt(r.source_end_sec)}</td><td class="num">${fmt(r.duration_sec)}s</td><td>${esc(r.role)}</td><td>${esc(r.action)}</td></tr>`).join("");
+    edl.map((r, i) => `<tr><td class="num">${i + 1}</td><td class="num">${esc(r.filename)}</td><td class="num">${fmt(r.source_start_sec)}-${fmt(r.source_end_sec)}</td><td class="num">${fmt(r.duration_sec)}s</td><td>${esc(r.role)}</td><td>${esc(shortAction(r.action))}</td></tr>`).join("");
 
   const cov = s.coverage;
   $("r-coverage").textContent = cov?.coverage_summary || (cov ? "" : "Coverage did not run.");
@@ -240,6 +309,7 @@ function renderResult() {
 }
 
 $("btn-again").addEventListener("click", () => {
+  clearInterval(replayTimer);
   session = null;
   $("brief").value = "";
   show("s-landing");

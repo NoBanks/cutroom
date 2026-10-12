@@ -176,7 +176,7 @@ async function analyseClip({ clipPath, inventory, sessionDir, intent, onProgress
   const result = await generateJSON(prompt, userPayload, SELECTOR_OUTPUT_SCHEMA, {
     tier: "vision",
     thinking: false,
-    maxTokens: 14000,
+    maxTokens: 20000,
     images: sheets.map((s) => s.dataUrl),
     onEvent: (e) => onProgress({ state: "retrying", message: `${name}: ${e.type} (${e.reason})` }),
   });
